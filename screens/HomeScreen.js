@@ -1,6 +1,6 @@
 import React from "react";
 import { View, StyleSheet, StatusBar, Platform } from "react-native";
-import { Camera, Permissions } from "expo";
+import { Camera, Permissions, FaceDetector } from "expo";
 import Color from "../constants/Color";
 import NoPermissions from "../components/NoPermissions";
 import Layout from "../constants/Layout";
@@ -33,6 +33,10 @@ export default class HomeScreen extends React.Component {
             ratio={"1:1"}
             flashMode={flashMode}
             zoom={zoom}
+            onFacesDetected={this._handleFacesDetected}
+            faceDetectionClassifications={
+              FaceDetector.Constants.Classifications.all
+            }
           />
           <View style={styles.actions}>
             <Icon
@@ -119,6 +123,10 @@ export default class HomeScreen extends React.Component {
         }
         break;
     }
+  };
+
+  _handleFacesDetected = faces => {
+    console.log(faces);
   };
 }
 
