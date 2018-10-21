@@ -1,7 +1,8 @@
 import React from "react";
 import { Platform, StatusBar, StyleSheet, View } from "react-native";
-import { AppLoading, Font, Icon } from "expo";
+import { AppLoading, Font } from "expo";
 import AppNavigator from "./navigation/AppNavigator";
+import { Ionicons } from "@expo/vector-icons";
 
 export default class App extends React.Component {
   state = {
@@ -30,7 +31,7 @@ export default class App extends React.Component {
   _loadResourcesAsync = async () => {
     return Promise.all([
       Font.loadAsync({
-        ...Icon.Ionicons.font
+        ...Ionicons.font
       })
     ]);
   };
