@@ -1,7 +1,6 @@
 import React from "react";
 import { View, StyleSheet, StatusBar, Platform } from "react-native";
-import { Camera, Permissions, FaceDetector } from "expo";
-import Color from "../constants/Color";
+import { Camera, Permissions, FaceDetector, MediaLibrary } from "expo";
 import NoPermissions from "../components/NoPermissions";
 import Layout from "../constants/Layout";
 import Icon from "../components/Icon";
@@ -11,7 +10,8 @@ export default class HomeScreen extends React.Component {
     hasPermission: null,
     cameraType: Camera.Constants.Type.front,
     zoom: 0,
-    flashMode: Camera.Constants.FlashMode.on
+    flashMode: Camera.Constants.FlashMode.on,
+    detectingFaces: true
   };
 
   componentWillMount = async () => {
@@ -22,7 +22,13 @@ export default class HomeScreen extends React.Component {
   };
 
   render() {
-    const { hasPermission, cameraType, flashMode, zoom } = this.state;
+    const {
+      hasPermission,
+      cameraType,
+      flashMode,
+      zoom,
+      detectingFaces
+    } = this.state;
     if (hasPermission === "granted") {
       return (
         <View style={styles.container}>
@@ -38,7 +44,10 @@ export default class HomeScreen extends React.Component {
               detectLandmarks: FaceDetector.Constants.Landmarks.none,
               runClassifications: FaceDetector.Constants.Classifications.all
             }}
-            onFacesDetected={this._handleFacesDetected}
+            onFacesDetected={detectingFaces ? this._handleFacesDetected : null}
+            ref={ref => {
+              this.camera = ref;
+            }}
           />
           <View style={styles.actions}>
             <Icon
@@ -109,26 +118,60 @@ export default class HomeScreen extends React.Component {
         } else {
           return "ios-flash";
         }
-        break;
       case Camera.Constants.FlashMode.off:
         if (platform === "android") {
           return "md-flash-off";
         } else {
           return "ios-flash-off";
         }
-        break;
       case Camera.Constants.FlashMode.torch:
         if (platform === "android") {
           return "md-flashlight";
         } else {
           return "ios-flashlight";
         }
-        break;
     }
   };
 
-  _handleFacesDetected = faces => {
-    console.log(faces);
+  _handleFacesDetected = data => {
+    const { faces } = data;
+    if (faces[0]) {
+      const smile = parseFloat(faces[0].smilingProbability.toFixed(2));
+      if (smile > 0.7) {
+        this.setState({
+          detectingFaces: false
+        });
+        this._takePhoto();
+      }
+    }
+  };
+  _takePhoto = async () => {
+    try {
+      let photo = await this.camera.takePictureAsync({
+        quality: 1,
+        exif: false
+      });
+      this._savePhoto(photo);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+  _savePhoto = async photo => {
+    try {
+      const { status } = await Permissions.askAsync(Permissions.CAMERA_ROLL);
+      if (status === "granted") {
+        const { uri } = photo;
+        const asset = await MediaLibrary.createAssetAsync(uri);
+        const album = await MediaLibrary.createAlbumAsync("Smile Cam", asset);
+        if (album.id) {
+          this.setState({
+            detectingFaces: false
+          });
+        }
+      }
+    } catch (error) {
+      console.log(error);
+    }
   };
 }
 
