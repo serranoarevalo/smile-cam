@@ -33,10 +33,12 @@ export default class HomeScreen extends React.Component {
             ratio={"1:1"}
             flashMode={flashMode}
             zoom={zoom}
+            faceDetectorSettings={{
+              mode: FaceDetector.Constants.Mode.accurate,
+              detectLandmarks: FaceDetector.Constants.Landmarks.none,
+              runClassifications: FaceDetector.Constants.Classifications.all
+            }}
             onFacesDetected={this._handleFacesDetected}
-            faceDetectionClassifications={
-              FaceDetector.Constants.Classifications.all
-            }
           />
           <View style={styles.actions}>
             <Icon
